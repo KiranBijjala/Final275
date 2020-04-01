@@ -11,8 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 
 @Service
@@ -28,21 +28,26 @@ public class SponsorService {
 
 
     public ResponseEntity<?> returnType(Optional<String> format, Sponsor sponsor ,String type ){
-
+        String frmt;
+        if(format.isPresent()) {
+            frmt = format.get().trim();
+        }else{
+            frmt="json";
+        }
         switch (type.toUpperCase()) {
 
             case "FOUND":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.FOUND).contentType(MediaType.APPLICATION_XML).body(sponsor);
                 else
                     return ResponseEntity.status(HttpStatus.FOUND).contentType(MediaType.APPLICATION_JSON).body(sponsor);
             case "CREATED":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_XML).body(sponsor);
                 else
                     return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(sponsor);
             case "OK":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_XML).body(sponsor);
                 else
                     return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(sponsor);
@@ -54,7 +59,7 @@ public class SponsorService {
 
 
     public ResponseEntity<?> getSponsor(String name, Optional<String> responseType) {
-        Optional<Sponsor> sponsor = sponsorRepository.findById(name);
+        Optional<Sponsor> sponsor = sponsorRepository.findById(name.trim());
         if (!sponsor.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error : Sponsor Not Found");
         }
@@ -65,12 +70,12 @@ public class SponsorService {
                                            Optional<String> state, Optional<String> zip , Optional<String>responseType) {
         System.out.println("Inside create Sponsor service" + name);
 
-        if( name==null || name.isEmpty() ||  name.length()<2 ){
+        if( name==null || name.isEmpty() ||  name.trim().length()<2 ){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter");
         }
 
         Optional<Sponsor> sp;
-        sp =  sponsorRepository.findById(name);
+        sp =  sponsorRepository.findById(name.trim());
         if (sp.isPresent() ){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Bad Parameter | Sponsor already exists");
         }
@@ -82,16 +87,16 @@ public class SponsorService {
 
             Address address = new Address();
             if (city.isPresent()) {
-                address.setCity(city.get());
+                address.setCity(city.get().trim());
             }
             if (state.isPresent()) {
-                address.setState(state.get());
+                address.setState(state.get().trim());
             }
             if (street.isPresent()) {
-                address.setStreet(street.get());
+                address.setStreet(street.get().trim());
             }
             if (zip.isPresent()) {
-                address.setZip(zip.get());
+                address.setZip(zip.get().trim());
             }
 
             sponsor.setAddress(address);
@@ -114,11 +119,11 @@ public class SponsorService {
 
         if( name == null || name.isEmpty() ){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter : Invalid name parameter");
-        }else if(name.length()<2){
+        }else if(name.trim().length()<2){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter : Name length is less than 2 characters");
         }
 
-        Optional<Sponsor> sponsor = sponsorRepository.findById(name);
+        Optional<Sponsor> sponsor = sponsorRepository.findById(name.trim());
         if (!sponsor.isPresent()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bad Parameter | Sponsor doesn't exist");
         }
@@ -153,25 +158,41 @@ public class SponsorService {
     }
 
     public ResponseEntity<?> deleteSponsor(String name, Optional<String> format) {
-        Optional<Sponsor> sponsor = sponsorRepository.findById(name);
+        Optional<Sponsor> sponsor = sponsorRepository.findById(name.trim());
         if (!sponsor.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error : Sponsor Not Found");
         }
-        Set<Player> list = playerRepository.findBysponsor_name(name);
-        for(Player p: list ){
-            Optional<Address> addrs = p.getAddress();
 
-            String firstname = p.getFirstName();
-            String lastname = p.getLastName();
-            Optional<String> street = Optional.ofNullable(addrs.get().getStreet());
-            Optional<String> city = Optional.ofNullable(addrs.get().getCity());
-            Optional<String> state = Optional.ofNullable(addrs.get().getState());
-            Optional<String> zip = Optional.ofNullable(addrs.get().getZip());
-            Long id = p.getGenId();
-            playerService.updatePlayer(id, firstname,lastname,p.getEmail(),p.getDescription(),street,city,state,zip,null,format);
+        Optional<List<Player>> playerLst = sponsor.get().getBeneficiaries();
+
+        if(playerLst.isPresent()){
+            if(playerLst.get().size()>=1){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Few Players are benefiting from the sponsor.");
+            }else{
+                sponsorRepository.deleteById(name.trim());
+                return returnType(format, sponsor.get(),"OK");
+            }
+        }else{
+            sponsorRepository.deleteById(name.trim());
+            return returnType(format, sponsor.get(),"OK");
         }
-        sponsorRepository.deleteById(name);
-        return returnType(format, sponsor.get(),"OK");
+
+//        Set<Player> list = playerRepository.findBysponsor_name(name);
+//        for(Player p: list ){
+//            Optional<Address> addrs = p.getAddress();
+//
+//            String firstname = p.getFirstName();
+//            String lastname = p.getLastName();
+//            Optional<String> street = Optional.ofNullable(addrs.get().getStreet());
+//            Optional<String> city = Optional.ofNullable(addrs.get().getCity());
+//            Optional<String> state = Optional.ofNullable(addrs.get().getState());
+//            Optional<String> zip = Optional.ofNullable(addrs.get().getZip());
+//            Long id = p.getGenId();
+//            playerService.updatePlayer(id, firstname,lastname,p.getEmail(),p.getDescription(),street,city,state,zip,null,format);
+//        }
+
+
+
     }
 
 }

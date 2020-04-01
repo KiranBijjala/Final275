@@ -129,24 +129,19 @@ public class PlayerController {
 
     // to get player
     @RequestMapping(value="/player/{id}", method=RequestMethod.GET, produces={MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> getPlayer(@PathVariable String id,
+    public ResponseEntity<?> getPlayer(@PathVariable Long id,
                                        @RequestParam(value = "format", required=false) Optional<String> format){
-//        System.out.println("Inside get player controller");
-//        String responseType="json";
-//
-//        if(format != null && format.equalsIgnoreCase("xml")){ // ?xml=true
-//            responseType="xml";
-//        }
+
 
         return playerService.getPlayer(id,format);
     }
 
     // to delete player
-    @RequestMapping(value="/player/{id}", method=RequestMethod.DELETE, produces={MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> deletePlayer(@PathVariable String id){
+    @RequestMapping(value="/player/{id}", method=RequestMethod.DELETE, produces={MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, })
+    public ResponseEntity<?> deletePlayer(@PathVariable Long id, @RequestParam(value = "format", required=false) Optional<String> responseType){
         System.out.println("Inside delete player controller");
 
-        return playerService.deletePlayer(id);
+        return playerService.deletePlayer(id,responseType);
     }
     //
     // to update player
@@ -163,7 +158,9 @@ public class PlayerController {
             @RequestParam(value ="sponsor", required = false) Optional<String> sponsor,
             @RequestParam(value = "format", required=false) Optional<String> format, HttpServletRequest request
     ) {
-
+        if(id !=(Long)id){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Request | Id should be of type Long"); // or do redirect
+        }
         Map<String, String[]> params = request.getParameterMap();
         Set<String> validParams = new HashSet<>();
         validParams.add("firstname");

@@ -62,7 +62,7 @@ public class Player implements Serializable{
 
 //    @JsonIgnore
 //    @JsonManagedReference
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JsonIgnoreProperties({"opponent", "sponsor"})
     @JoinTable(name="opponents",joinColumns = { @JoinColumn (name = "player_id", referencedColumnName = "id", nullable = false)},
             inverseJoinColumns = { @JoinColumn (name = "opponent_id", referencedColumnName = "id", nullable = false)}
@@ -71,7 +71,7 @@ public class Player implements Serializable{
 //
 //
 //    @JsonIgnore
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JsonIgnoreProperties({"opponent_of"})
     @JoinTable(name="opponents",joinColumns = { @JoinColumn (name = "opponent_id", referencedColumnName = "id", nullable = false)},
             inverseJoinColumns = { @JoinColumn (name = "player_id", referencedColumnName = "id", nullable = false)}

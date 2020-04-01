@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,21 +24,26 @@ public class PlayerService {
 
 
     public ResponseEntity<?> returnType(Optional<String> format, Player player ,String type ){
-
+        String frmt;
+        if(format.isPresent()) {
+             frmt = format.get().trim();
+        }else{
+            frmt="json";
+        }
         switch (type.toUpperCase()) {
 
             case "FOUND":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.FOUND).contentType(MediaType.APPLICATION_XML).body(player);
                 else
                     return ResponseEntity.status(HttpStatus.FOUND).contentType(MediaType.APPLICATION_JSON).body(player);
             case "CREATED":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_XML).body(player);
                 else
                     return ResponseEntity.status(HttpStatus.CREATED).contentType(MediaType.APPLICATION_JSON).body(player);
             case "OK":
-                if (format.isPresent() && format.get().equalsIgnoreCase("xml"))
+                if (format.isPresent() && frmt.equalsIgnoreCase("xml"))
                     return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_XML).body(player);
                 else
                     return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON).body(player);
@@ -63,13 +67,13 @@ public class PlayerService {
         }
 
         if (sponsor.isPresent()){
-            sp = sponsorRepository.findById(sponsor.get());
+            sp = sponsorRepository.findById(sponsor.get().trim());
             if (!sp.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Sponsor does not exist");
             }
         }
 
-        validatePlayerExists = playerRepository.findByEmail(email);
+        validatePlayerExists = playerRepository.findByEmail(email.trim());
         if (validatePlayerExists!=null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Bad Parameter | Email already exists");
         }
@@ -78,22 +82,19 @@ public class PlayerService {
 
             Address address = new Address();
             if (city.isPresent()) {
-                address.setCity(city.get());
-                System.out.println(address.getCity());
-            }else{
-                address.setCity(null);
+                address.setCity(city.get().trim());
+
             }
             if (state.isPresent()) {
-                address.setState(state.get());
-                System.out.println(address.getState());
+                address.setState(state.get().trim());
+
             }
             if (street.isPresent()) {
-                address.setStreet(street.get());
-                System.out.println(address.getStreet());
+                address.setStreet(street.get().trim());
+
             }
             if (zip.isPresent()) {
-                address.setZip(zip.get());
-                System.out.println(address.getZip());
+                address.setZip(zip.get().trim());
             }
 
             if(address==null){
@@ -110,7 +111,7 @@ public class PlayerService {
             newPlayer.setDescription(description.get().trim());
         }
         if(sponsor.isPresent()) {
-            newPlayer.setSponsor(sponsorRepository.findByName(sponsor.get()));
+            newPlayer.setSponsor(sponsorRepository.findByName(sponsor.get().trim()));
         }
 
         playerRepository.saveAndFlush(newPlayer);
@@ -118,9 +119,9 @@ public class PlayerService {
         return returnType(format, newPlayer,"OK");
     }
 
-    public ResponseEntity<?> getPlayer(String id, Optional<String> format){
+    public ResponseEntity<?> getPlayer(Long id, Optional<String> format){
         System.out.println("getPlayer() service");
-        Player player = playerRepository.findByGenId(Long.parseLong(id));
+        Player player = playerRepository.findByGenId(id);
         if(player == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player with " + id + "not found");
         }
@@ -142,14 +143,14 @@ public class PlayerService {
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bad Parameter | Player not found");
         }
 
-        Player playerWithNewEmailExists = playerRepository.findByEmail(email);
+        Player playerWithNewEmailExists = playerRepository.findByEmail(email.trim());
         if(playerWithNewEmailExists!=null && !playerWithNewEmailExists.getEmail().equalsIgnoreCase(player.getEmail())){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Email already exists");
         }
         Optional<Sponsor> sponsor1 ;
-        player.setEmail(email);
-        player.setFirstName(firstname);
-        player.setLastName(lastname);
+        player.setEmail(email.trim());
+        player.setFirstName(firstname.trim());
+        player.setLastName(lastname.trim());
         if (city.isPresent() || state.isPresent() || street.isPresent() || zip.isPresent()) {
             Optional<Address> address = Optional.of(new Address());
 
@@ -189,7 +190,7 @@ public class PlayerService {
         }
 
         if(sponsor.isPresent()){
-            sponsor1 = sponsorRepository.findById(sponsor.get());
+            sponsor1 = sponsorRepository.findById(sponsor.get().trim());
             if (sponsor1.isPresent()) {
                 player.setSponsor(sponsor1.get());
             }
@@ -201,31 +202,43 @@ public class PlayerService {
         return returnType(format, player,"OK");
     }
 
-    public ResponseEntity<?> deletePlayer(String id) {
+    public ResponseEntity<?> deletePlayer(Long id ,Optional<String> format) {
         System.out.println("inside delete player service");
-        Player player = playerRepository.findByGenId(Long.parseLong(id));
+        Optional<Player> player = playerRepository.findById(id);
+        if(!player.isPresent()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error : Player Not Found");
+        }
 
-        playerRepository.delete(player);
-        return ResponseEntity.status(HttpStatus.OK).body(player);
+        playerRepository.delete(player.get());
+
+        return returnType(format, player.get(), "OK");
+
+//        Optional<Player> player = playerRepository.findById(id);
+//        if (!player.isPresent()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error : Player Not Found");
+//        }
+//        playerRepository.deleteById(id);
+//        System.out.println(player.get());
+//        return returnType(format, player.get(),"OK");
     }
 
 
 
     //delete opponents
-    public ResponseEntity<?> deleteOpponent(String id1, String id2) {
-        System.out.println("inside delete player service");
-        Player player1 = playerRepository.findByGenId(Long.parseLong(id1));
-        Player player2 = playerRepository.findByGenId(Long.parseLong(id2));
-
-        Optional<List<Player>> l1 = player1.getOpponent();
-        Optional<List<Player>> l2 = player1.getOpponent_of();
-
-        if (l1.get().contains(player2)){
-            l1.get().remove(player2);
-            l2.get().remove(player2);
-        }
-        return ResponseEntity.status(HttpStatus.OK).body("Removed");
-    }
+//    public ResponseEntity<?> deleteOpponent(String id1, String id2) {
+//        System.out.println("inside delete player service");
+//        Player player1 = playerRepository.findByGenId(Long.parseLong(id1));
+//        Player player2 = playerRepository.findByGenId(Long.parseLong(id2));
+//
+//        Optional<List<Player>> l1 = player1.getOpponent();
+//        Optional<List<Player>> l2 = player1.getOpponent_of();
+//
+//        if (l1.get().contains(player2)){
+//            l1.get().remove(player2);
+//            l2.get().remove(player2);
+//        }
+//        return ResponseEntity.status(HttpStatus.OK).body("Removed");
+//    }
 }
 
 
