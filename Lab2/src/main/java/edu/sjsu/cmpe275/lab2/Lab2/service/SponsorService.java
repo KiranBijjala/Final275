@@ -72,7 +72,7 @@ public class SponsorService {
         Optional<Sponsor> sp;
         sp =  sponsorRepository.findById(name);
         if (sp.isPresent() ){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Sponsor already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Bad Parameter | Sponsor already exists");
         }
 
         Player p;
@@ -123,7 +123,7 @@ public class SponsorService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bad Parameter | Sponsor doesn't exist");
         }
 
-        if (city.isPresent() && state.isPresent() && street.isPresent() && zip.isPresent()) {
+        if (city.isPresent() || state.isPresent() || street.isPresent() || zip.isPresent()) {
             Optional<Address> address = Optional.of(new Address());
 
             if (city.isPresent()) {
@@ -145,7 +145,7 @@ public class SponsorService {
         if (description.isPresent()) {
             sponsor.get().setDescription(description.get().trim());
         }
-        sponsor.get().setName(name.trim());
+//        sponsor.get().setName(name.trim());
 
         sponsorRepository.saveAndFlush(sponsor.get());
 
@@ -161,13 +161,14 @@ public class SponsorService {
         for(Player p: list ){
             Optional<Address> addrs = p.getAddress();
 
-            Optional<String> firstname = Optional.ofNullable(p.getFirstName());
-            Optional<String> lastname = Optional.ofNullable(p.getLastName());
+            String firstname = p.getFirstName();
+            String lastname = p.getLastName();
             Optional<String> street = Optional.ofNullable(addrs.get().getStreet());
             Optional<String> city = Optional.ofNullable(addrs.get().getCity());
             Optional<String> state = Optional.ofNullable(addrs.get().getState());
             Optional<String> zip = Optional.ofNullable(addrs.get().getZip());
-            playerService.updatePlayer(firstname,lastname,p.getEmail(),p.getDescription(),street,city,state,zip,null,format);
+            Long id = p.getGenId();
+            playerService.updatePlayer(id, firstname,lastname,p.getEmail(),p.getDescription(),street,city,state,zip,null,format);
         }
         sponsorRepository.deleteById(name);
         return returnType(format, sponsor.get(),"OK");

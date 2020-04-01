@@ -5,7 +5,6 @@ import edu.sjsu.cmpe275.lab2.Lab2.model.Player;
 import edu.sjsu.cmpe275.lab2.Lab2.model.Sponsor;
 import edu.sjsu.cmpe275.lab2.Lab2.repository.PlayerRepository;
 import edu.sjsu.cmpe275.lab2.Lab2.repository.SponsorRepository;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -72,7 +71,7 @@ public class PlayerService {
 
         validatePlayerExists = playerRepository.findByEmail(email);
         if (validatePlayerExists!=null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Bad Parameter | Email already exists");
         }
 
         if (city.isPresent() || state.isPresent() || street.isPresent() || zip.isPresent()) {
@@ -125,25 +124,33 @@ public class PlayerService {
         if(player == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player with " + id + "not found");
         }
-        return returnType(format, player,"FOUND");
+
+        return returnType(format, player,"OK");
     }
 
-    public ResponseEntity<?> updatePlayer(Optional<String>  firstname, Optional<String> lastname,
+    public ResponseEntity<?> updatePlayer(Long id, String  firstname, String lastname,
                                           String email, Optional<String> description, Optional<String> street, Optional<String> city,
                                           Optional<String> state, Optional<String> zip, Optional<String> sponsor, Optional<String>format) {
         //topics.add(topic);
         System.out.println("inside updatePlayer() service");
-        Player player = playerRepository.findByEmail(email);
-        JSONObject json = new JSONObject();
 
-        Optional<Sponsor> sponsor1 ;
+        System.out.println("");
+
+        Player player = playerRepository.findByGenId(id);
 
         if(player==null){
-            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player not found");
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bad Parameter | Player not found");
         }
-        System.out.println("Updating User");
 
-        if (city.isPresent() && state.isPresent() && street.isPresent() && zip.isPresent()) {
+        Player playerWithNewEmailExists = playerRepository.findByEmail(email);
+        if(playerWithNewEmailExists!=null && !playerWithNewEmailExists.getEmail().equalsIgnoreCase(player.getEmail())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Email already exists");
+        }
+        Optional<Sponsor> sponsor1 ;
+        player.setEmail(email);
+        player.setFirstName(firstname);
+        player.setLastName(lastname);
+        if (city.isPresent() || state.isPresent() || street.isPresent() || zip.isPresent()) {
             Optional<Address> address = Optional.of(new Address());
 
             if (city.isPresent()) {
@@ -169,13 +176,11 @@ public class PlayerService {
 
 
             player.setAddress(address.get());
+        }else{
+            player.setAddress(null);
         }
-        if(firstname.isPresent()) {
-            player.setFirstName(firstname.get().trim());
-        }
-        if(lastname.isPresent()) {
-            player.setLastName(lastname.get().trim());
-        }
+
+
 
         if (description.isPresent()) {
             player.setDescription(description.get().trim());
@@ -188,6 +193,8 @@ public class PlayerService {
             if (sponsor1.isPresent()) {
                 player.setSponsor(sponsor1.get());
             }
+        }else{
+            player.setSponsor(null);
         }
 
         playerRepository.saveAndFlush(player);
@@ -201,6 +208,8 @@ public class PlayerService {
         playerRepository.delete(player);
         return ResponseEntity.status(HttpStatus.OK).body(player);
     }
+
+    
 
     //delete opponents
     public ResponseEntity<?> deleteOpponent(String id1, String id2) {

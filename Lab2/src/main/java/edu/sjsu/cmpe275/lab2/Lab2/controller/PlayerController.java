@@ -6,15 +6,14 @@ import edu.sjsu.cmpe275.lab2.Lab2.repository.PlayerRepository;
 import edu.sjsu.cmpe275.lab2.Lab2.repository.SponsorRepository;
 import edu.sjsu.cmpe275.lab2.Lab2.service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 @Transactional
 @RestController
@@ -40,15 +39,15 @@ public class PlayerController {
         return playerRepository.findAll();
     }
 
-    @GetMapping("/players/{id}")
-    public ResponseEntity<Player> getPlayersById(@PathVariable(value = "id") Long userId)
-            throws InvalidConfigurationPropertyValueException {
-        Player player =
-                playerRepository
-                        .findById(userId)
-                        .orElseThrow(() -> new InvalidConfigurationPropertyValueException("", null, "User not found on :: " + userId));
-        return ResponseEntity.ok().body(player);
-    }
+//    @GetMapping("/players/{id}")
+//    public ResponseEntity<Player> getPlayersById(@PathVariable(value = "id") Long userId)
+//            throws InvalidConfigurationPropertyValueException {
+//        Player player =
+//                playerRepository
+//                        .findById(userId)
+//                        .orElseThrow(() -> new InvalidConfigurationPropertyValueException("", null, "User not found on :: " + userId));
+//        return ResponseEntity.ok().body(player);
+//    }
 
 
 //    @PostMapping("/createPlayers")
@@ -97,9 +96,30 @@ public class PlayerController {
             @RequestParam("state") Optional<String> state,
             @RequestParam("zip") Optional<String> zip,
             @RequestParam("sponsor") Optional<String> sponsor,
-            @RequestParam(value = "format", required=false) Optional<String> format
+            @RequestParam(value = "format", required=false) Optional<String> format,
+            HttpServletRequest request
     ) {
-
+        Map<String, String[]> params = request.getParameterMap();
+        Set<String> validParams = new HashSet<>();
+        validParams.add("firstname");
+        validParams.add("lastname");
+        validParams.add("email");
+        validParams.add("description");
+        validParams.add("city");
+        validParams.add("street");
+        validParams.add("state");
+        validParams.add("zip");
+        validParams.add("sponsor");
+        validParams.add("format");
+        if (params.size() >10 ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Extra Parameters are present"); // or do redirect
+        }else {
+            for(Map.Entry<String, String[]> entry:  params.entrySet()){
+                if(!validParams.contains(entry.getKey())){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | "+entry.getKey()+" is not valid param");
+                }
+            }
+        }
         System.out.println("inside create sponsor controller");
         return playerService.createPlayer(firstname,lastname,email,description,street,city,state,zip,sponsor,format);
 
@@ -132,8 +152,8 @@ public class PlayerController {
     // to update player
     @RequestMapping(value="/player/{id}", method=RequestMethod.PUT, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updatePlayer(@PathVariable Long id,
-            @RequestParam(value = "firstname",required = false) Optional<String> firstname,
-            @RequestParam(value = "lastname" , required = false) Optional<String> lastname,
+            @RequestParam(value = "firstname",required = true) String firstname,
+            @RequestParam(value = "lastname" , required = true) String lastname,
             @RequestParam(value = "email") String email,
             @RequestParam(value ="description", required = false) Optional<String> description,
             @RequestParam(value ="street", required = false) Optional<String> street,
@@ -141,17 +161,34 @@ public class PlayerController {
             @RequestParam(value ="state", required = false) Optional<String>state,
             @RequestParam(value ="zip", required = false) Optional<String> zip,
             @RequestParam(value ="sponsor", required = false) Optional<String> sponsor,
-            @RequestParam(value = "format", required=false) Optional<String> format
+            @RequestParam(value = "format", required=false) Optional<String> format, HttpServletRequest request
     ) {
 
-
+        Map<String, String[]> params = request.getParameterMap();
+        Set<String> validParams = new HashSet<>();
+        validParams.add("firstname");
+        validParams.add("lastname");
+        validParams.add("email");
+        validParams.add("description");
+        validParams.add("city");
+        validParams.add("street");
+        validParams.add("state");
+        validParams.add("zip");
+        validParams.add("sponsor");
+        validParams.add("format");
+//        System.out.printf();
+        if (params.size() >10 ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Extra Parameters are present"); // or do redirect
+        }else {
+            for(Map.Entry<String, String[]> entry:  params.entrySet()){
+                if(!validParams.contains(entry.getKey())){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | "+entry.getKey()+" is not valid param");
+                }
+            }
+        }
         System.out.println("inside update player controller");
         Optional<Sponsor> sp;
         Player p;
-
-//        if(email.equals("") ){
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | email must be present");
-//        }
 
         if (sponsor.isPresent()){
             sp =  sponsorRepository.findById(sponsor.get());
@@ -159,10 +196,10 @@ public class PlayerController {
             if (!sp.isPresent()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | Sponsor does not exist");
             }
-            return playerService.updatePlayer(firstname,lastname,email,description,street,city,state,zip,sponsor,format);
+            return playerService.updatePlayer(id, firstname,lastname,email,description,street,city,state,zip,sponsor,format);
         }
 //        Sponsor empty_sp = null;
-        return playerService.updatePlayer(firstname,lastname,email,description,street,city,state,zip,sponsor,format);
+        return playerService.updatePlayer(id, firstname,lastname,email,description,street,city,state,zip,sponsor,format);
     }
 
 //    //add opponent

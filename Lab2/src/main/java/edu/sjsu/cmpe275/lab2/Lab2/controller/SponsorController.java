@@ -6,13 +6,14 @@ import edu.sjsu.cmpe275.lab2.Lab2.repository.SponsorRepository;
 import edu.sjsu.cmpe275.lab2.Lab2.service.PlayerService;
 import edu.sjsu.cmpe275.lab2.Lab2.service.SponsorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 @Transactional
 @RestController
@@ -54,22 +55,61 @@ public class SponsorController  {
             @RequestParam(value ="city",required =false) Optional<String> city,
             @RequestParam(value ="state",required =false) Optional<String> state,
             @RequestParam(value ="zip",required =false) Optional<String> zip,
-            @RequestParam(value = "format", required=false) Optional<String> format
+            @RequestParam(value = "format", required=false) Optional<String> format,
+            HttpServletRequest request
     ) {
+        Map<String, String[]> params = request.getParameterMap();
+        Set<String> validParams = new HashSet<>();
+        validParams.add("name");
+        validParams.add("description");
+        validParams.add("city");
+        validParams.add("street");
+        validParams.add("state");
+        validParams.add("zip");
+        validParams.add("format");
+
+        if (params.size() >7 ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Extra Parameters are present"); // or do redirect
+        }else {
+            for(Map.Entry<String, String[]> entry:  params.entrySet()){
+                if(!validParams.contains(entry.getKey())){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | "+entry.getKey()+" is not valid param");
+                }
+            }
+        }
         System.out.println("inside create sponsor controller");
         return sponsorService.createSponsor(name,description,street,city,state,zip,format);
     }
 
     @RequestMapping(value="/sponsor/{name}" ,  method= RequestMethod.PUT, produces= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updateSponsor(
-            @RequestParam(value ="name",required = true) String name,
+            @PathVariable("name") String name,
             @RequestParam(value ="description",required =false) Optional<String> description,
             @RequestParam(value ="street",required =false) Optional<String> street,
             @RequestParam(value ="city",required =false) Optional<String> city,
             @RequestParam(value ="state",required =false) Optional<String> state,
             @RequestParam(value ="zip",required =false) Optional<String> zip,
-            @RequestParam(value = "format", required=false) Optional<String> format) {
+            @RequestParam(value = "format", required=false) Optional<String> format,
+            HttpServletRequest request) {
+        Map<String, String[]> params = request.getParameterMap();
+        Set<String> validParams = new HashSet<>();
 
+        validParams.add("description");
+        validParams.add("city");
+        validParams.add("street");
+        validParams.add("state");
+        validParams.add("zip");
+        validParams.add("format");
+
+        if (params.size() >6 ) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Extra Parameters are present"); // or do redirect
+        }else {
+            for(Map.Entry<String, String[]> entry:  params.entrySet()){
+                if(!validParams.contains(entry.getKey())){
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Parameter | "+entry.getKey()+" is not valid param");
+                }
+            }
+        }
         return sponsorService.updateSponsor(name,description,street,city,state,zip,format);
     }
 
