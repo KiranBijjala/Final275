@@ -189,40 +189,39 @@ public class PlayerController {
 //
 //    }
 
-    @RequestMapping(value="/opponents/{id1}/{id2}", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> addOpponent(
-            @PathVariable String id1,
-            @PathVariable String id2
-    ) {
-
-        System.out.println("inside create add opponent controller");
-
-        Player p = playerRepository.findByGenId(Long.parseLong(id1));
-        Player p1 = playerRepository.findByGenId(Long.parseLong(id2));
-
-        p.getOpponent().get().add(p1);
-        p.getOpponent_of().get().add(p1);
-
-        System.out.println(p.getOpponent());
-        System.out.println(p1.getOpponent_of());
-
-        return ResponseEntity.status(HttpStatus.OK).body(p);
-//        p.setOpponents(pl);
-
-    }
+//    @RequestMapping(value="/opponents/{id1}/{id2}", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<?> addOpponent(
+//            @PathVariable String id1,
+//            @PathVariable String id2
+//    ) {
+//
+//        System.out.println("inside create add opponent controller");
+//
+//        Player p = playerRepository.findByGenId(Long.parseLong(id1));
+//        Player p1 = playerRepository.findByGenId(Long.parseLong(id2));
+//
+//        p.getOpponent().get().add(p1);
+//        p.getOpponent_of().get().add(p1);
+//
+//        System.out.println(p.getOpponent());
+//        System.out.println(p1.getOpponent_of());
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(p);
+////        p.setOpponents(pl);
+//
+//    }
 
 
     //     to delete opponents
-    @RequestMapping(value="/player/{id1}/{id2}", method=RequestMethod.DELETE, produces={MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> deleteOpponent(@PathVariable String id1,@PathVariable String id2){
-        System.out.println("Inside delete player controller");
-
-        return playerService.deleteOpponent(id1,id2);
-    }
+//    @RequestMapping(value="/player/{id1}/{id2}", method=RequestMethod.DELETE, produces={MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+//    public ResponseEntity<?> deleteOpponent(@PathVariable String id1,@PathVariable String id2){
+//        System.out.println("Inside delete player controller");
+//
+//        return playerService.deleteOpponent(id1,id2);
+//    }
 
 
 }
-
 
 
 //package edu.sjsu.cmpe275.lab2.Lab2.controller;

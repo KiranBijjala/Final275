@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Entity
 @Table (name = "Sponsor")
+@JsonIgnoreProperties({"opponent"})
 @EntityListeners(AuditingEntityListener.class)
 public class Sponsor {
 
@@ -28,7 +29,7 @@ public class Sponsor {
 //    @Column(name = "beneficiaries", nullable = false)
 //    private String beneficiaries;
 
-    @JsonIgnoreProperties({"sponsor"})
+    @JsonIgnoreProperties({"opponent"})
      @OneToMany(fetch = FetchType.EAGER, mappedBy = "sponsor")
      private List<Player> beneficiaries;
 

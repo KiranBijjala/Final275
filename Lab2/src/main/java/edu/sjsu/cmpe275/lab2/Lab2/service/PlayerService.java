@@ -119,62 +119,15 @@ public class PlayerService {
         return returnType(format, newPlayer,"OK");
     }
 
-//    public JSONObject sponsorToJSONString(Sponsor sponsor){
-//        JSONObject result = new JSONObject();
-//        JSONObject reservationsJSON = new JSONObject();
-//        JSONObject arr[] = null;
-//        System.out.println("inside sponsorToJSONString()#####");
-//
-//
-//        System.out.println("inside sponsorToJSONString() try");
-////        result.put("player", fields);
-//
-//        Map fields = new LinkedHashMap();
-//        Map add = new LinkedHashMap();
-//
-//        System.out.println(sponsor.getName());
-//        System.out.println(sponsor.getDescription());
-//        System.out.println(sponsor.getAddress().getStreet());
-//        System.out.println(sponsor.getAddress().getCity());
-//        System.out.println(sponsor.getAddress().getState());
-//        System.out.println(sponsor.getAddress().getZip());
-//
-//
-//        fields.put("name", sponsor.getName());
-//        fields.put("description", sponsor.getDescription());
-//        fields.put("address", add);
-//        add.put("street",sponsor.getAddress().getStreet());
-//        add.put("city",sponsor.getAddress().getCity());
-//        add.put("state",sponsor.getAddress().getState());
-//        add.put("zip",sponsor.getAddress().getZip());
-//
-//        JSONObject field = new JSONObject(fields);
-//
-//        System.out.println(field.toString());
-//        System.out.println(result );
-//        return field;
-//    }
-
     public ResponseEntity<?> getPlayer(String id, Optional<String> format){
         System.out.println("getPlayer() service");
         Player player = playerRepository.findByGenId(Long.parseLong(id));
         if(player == null){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Player with " + id + "not found");
         }
-//        if(format.equals("xml")) {
-//            Optional<List<Player>> o1 = player.getOpponent();
-//            for (Player p1 :o1.get()){
-//                System.out.println(p1.getFirstName());
-//            }
-//            System.out.println("-----------------------");
-//            Optional<List<Player>> o2 = player.getOpponent_of();
-//            for (Player p1 :o2.get()){
-//                System.out.println(p1.getFirstName());
-//            }
-//        }
         return returnType(format, player,"FOUND");
     }
-    //
+
     public ResponseEntity<?> updatePlayer(Optional<String>  firstname, Optional<String> lastname,
                                           String email, Optional<String> description, Optional<String> street, Optional<String> city,
                                           Optional<String> state, Optional<String> zip, Optional<String> sponsor, Optional<String>format) {
@@ -223,7 +176,6 @@ public class PlayerService {
         if(lastname.isPresent()) {
             player.setLastName(lastname.get().trim());
         }
-//        player.get().setEmail(email.trim());
 
         if (description.isPresent()) {
             player.setDescription(description.get().trim());
@@ -263,10 +215,6 @@ public class PlayerService {
             l1.get().remove(player2);
             l2.get().remove(player2);
         }
-//        if (l2.contains(player1)){
-//            l2.remove(player1)
-//        }
-        //playerRepository.delete(player);
         return ResponseEntity.status(HttpStatus.OK).body("Removed");
     }
 }

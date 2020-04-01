@@ -1,6 +1,6 @@
 package edu.sjsu.cmpe275.lab2.Lab2.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
@@ -10,6 +10,8 @@ import java.util.Optional;
 
 @Entity
 //@JsonIdentityInfo(generator=ObjectIdGenerators.IntSequenceGenerator.class, property="genId")
+@JsonIgnoreProperties({"opponent_of"})
+
 @Table (name = "players")
 @EntityListeners(AuditingEntityListener.class)
 public class Player implements Serializable{
@@ -43,7 +45,7 @@ public class Player implements Serializable{
 //    private Sponsor sponsor;
 
      @ManyToOne(fetch = FetchType.EAGER, optional = true)
-//     @JsonIgnoreProperties({"beneficiaries"})
+     @JsonIgnoreProperties({"beneficiaries"})
      @JoinColumn(name = "sponsor_name")
      private Sponsor sponsor;
 
@@ -58,22 +60,30 @@ public class Player implements Serializable{
 //    private List<Player> opponents;
 
 
-    @JsonIgnore
+//    @JsonIgnore
 //    @JsonManagedReference
     @ManyToMany
+    @JsonIgnoreProperties({"opponent", "sponsor"})
     @JoinTable(name="opponents",joinColumns = { @JoinColumn (name = "player_id", referencedColumnName = "id", nullable = false)},
             inverseJoinColumns = { @JoinColumn (name = "opponent_id", referencedColumnName = "id", nullable = false)}
     )
     private List<Player> opponent;
-
-
-    @JsonIgnore
+//
+//
+//    @JsonIgnore
     @ManyToMany
+    @JsonIgnoreProperties({"opponent_of"})
     @JoinTable(name="opponents",joinColumns = { @JoinColumn (name = "opponent_id", referencedColumnName = "id", nullable = false)},
             inverseJoinColumns = { @JoinColumn (name = "player_id", referencedColumnName = "id", nullable = false)}
     )
     private List<Player> opponent_of;
 
+//    @JsonIgnore
+//    @ManyToMany(cascade={CascadeType.PERSIST})
+//    @JoinTable(name="opponents",
+//            joinColumns={@JoinColumn(name="player_id")},
+//            inverseJoinColumns={@JoinColumn(name="opponent_id")})
+//    private List<Player> opponent;
 
     public long getGenId() {
         return genId;
@@ -138,7 +148,7 @@ public class Player implements Serializable{
     public void setOpponent(List<Player> opponent) {
         this.opponent = opponent;
     }
-    @JsonIgnore
+//    @JsonIgnore
     public Optional<List<Player>> getOpponent_of() {
         return Optional.ofNullable(opponent_of);
     }
