@@ -209,7 +209,7 @@ public class PlayerService {
         return ResponseEntity.status(HttpStatus.OK).body(player);
     }
 
-    
+
 
     //delete opponents
     public ResponseEntity<?> deleteOpponent(String id1, String id2) {

@@ -29,7 +29,7 @@ public class Sponsor {
 //    @Column(name = "beneficiaries", nullable = false)
 //    private String beneficiaries;
 
-    @JsonIgnoreProperties({"opponent"})
+    @JsonIgnoreProperties({"opponent","sponsor"})
      @OneToMany(fetch = FetchType.EAGER, mappedBy = "sponsor")
      private List<Player> beneficiaries;
 
