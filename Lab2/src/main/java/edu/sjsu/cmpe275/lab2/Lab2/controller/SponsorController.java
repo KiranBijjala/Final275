@@ -17,7 +17,7 @@ import java.util.*;
 
 @Transactional
 @RestController
-@RequestMapping("/api/v1")
+//@RequestMapping("/api/v1")
 public class SponsorController  {
     @Autowired
     private PlayerRepository playerRepository;
